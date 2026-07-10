@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useRef, useState } from "react";
 
 const presets = [
   { label: "720p HD", value: "1280 × 720", hint: "Best for older clips" },
@@ -14,6 +14,44 @@ export default function Home() {
   const [preset, setPreset] = useState(1);
   const [processing, setProcessing] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [passcode, setPasscode] = useState("");
+  const [passcodeError, setPasscodeError] = useState(false);
+
+  async function unlock(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const encoded = new TextEncoder().encode(passcode);
+    const digest = await crypto.subtle.digest("SHA-256", encoded);
+    const attempt = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    if (attempt === "3342154f1e38139000d16a4744775f1b83be48b6ed8eee311c5e099ef4b195a0") {
+      setHasAccess(true);
+      setPasscode("");
+      setPasscodeError(false);
+      return;
+    }
+    setPasscodeError(true);
+  }
+
+  if (!hasAccess) {
+    return (
+      <main className="access-page">
+        <div className="access-card">
+          <a className="brand" href="#top" aria-label="Vivid home"><span>v</span> vivid</a>
+          <div className="access-mark">✦</div>
+          <p className="eyebrow"><i /> PRIVATE PREVIEW</p>
+          <h1>Enter the studio.</h1>
+          <p>This preview is shared with a small group. Enter the access passcode to continue.</p>
+          <form onSubmit={unlock}>
+            <label htmlFor="passcode">Access passcode</label>
+            <input id="passcode" type="password" autoComplete="current-password" value={passcode} onChange={(event) => { setPasscode(event.target.value); setPasscodeError(false); }} aria-invalid={passcodeError} autoFocus />
+            {passcodeError && <small className="passcode-error">That passcode isn’t correct. Please try again.</small>}
+            <button className="access-button" type="submit">Enter Vivid <span>→</span></button>
+          </form>
+          <small className="access-note">This is a preview access screen.</small>
+        </div>
+      </main>
+    );
+  }
 
   function chooseFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
