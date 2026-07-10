@@ -1,114 +1,62 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useRef, useState } from "react";
+import { FormEvent, useState } from "react";
 
-const presets = [
-  { label: "720p HD", value: "1280 × 720", hint: "Best for older clips" },
-  { label: "1080p Full HD", value: "1920 × 1080", hint: "Crisp everyday viewing" },
-  { label: "4K Ultra HD", value: "3840 × 2160", hint: "Maximum detail" },
+const durations = [
+  ["15 sec", "Fast social hook", "1 credit"],
+  ["30 sec", "Focused story", "1 credit"],
+  ["60 sec", "Full walkthrough", "2 credits"],
+  ["90 sec", "Signature film", "3 credits"],
 ];
+const scenes = ["Arrival", "The feeling", "The proof", "The invitation"];
 
 export default function Home() {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [preset, setPreset] = useState(1);
-  const [processing, setProcessing] = useState(false);
-  const [complete, setComplete] = useState(false);
-  const [hasAccess, setHasAccess] = useState(false);
-  const [passcode, setPasscode] = useState("");
-  const [passcodeError, setPasscodeError] = useState(false);
+  const [duration, setDuration] = useState(1);
+  const [name, setName] = useState("");
+  const [features, setFeatures] = useState("");
+  const [audience, setAudience] = useState("Ambitious professionals");
+  const [tone, setTone] = useState("Cinematic & warm");
+  const [plan, setPlan] = useState<string[] | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  async function unlock(event: FormEvent<HTMLFormElement>) {
+  function generate(event: FormEvent) {
     event.preventDefault();
-    const encoded = new TextEncoder().encode(passcode);
-    const digest = await crypto.subtle.digest("SHA-256", encoded);
-    const attempt = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-    if (attempt === "3342154f1e38139000d16a4744775f1b83be48b6ed8eee311c5e099ef4b195a0") {
-      setHasAccess(true);
-      setPasscode("");
-      setPasscodeError(false);
-      return;
-    }
-    setPasscodeError(true);
+    const project = name.trim() || "Your project";
+    const proof = features.trim() || "its most compelling details";
+    setPlan([
+      "Open on an irresistible first impression of " + project + "; establish the place, pace and point of view in the first three seconds.",
+      "Build an " + tone.toLowerCase() + " lifestyle moment designed for " + audience.toLowerCase() + ".",
+      "Reveal " + proof + ", using confident on-screen captions and a clean visual rhythm.",
+      "Finish with a simple invitation to discover " + project + ", framed as the next move—not a hard sell.",
+    ]);
+    setCopied(false);
+  }
+  async function copyPlan() {
+    if (!plan) return;
+    await navigator.clipboard.writeText(plan.map((item, i) => (i + 1) + ". " + item).join("\n\n"));
+    setCopied(true);
   }
 
-  if (!hasAccess) {
-    return (
-      <main className="access-page">
-        <div className="access-card">
-          <a className="brand" href="#top" aria-label="Vivid home"><span>v</span> vivid</a>
-          <div className="access-mark">✦</div>
-          <p className="eyebrow"><i /> PRIVATE PREVIEW</p>
-          <h1>Enter the studio.</h1>
-          <p>This preview is shared with a small group. Enter the access passcode to continue.</p>
-          <form onSubmit={unlock}>
-            <label htmlFor="passcode">Access passcode</label>
-            <input id="passcode" type="password" autoComplete="current-password" value={passcode} onChange={(event) => { setPasscode(event.target.value); setPasscodeError(false); }} aria-invalid={passcodeError} autoFocus />
-            {passcodeError && <small className="passcode-error">That passcode isn’t correct. Please try again.</small>}
-            <button className="access-button" type="submit">Enter Vivid <span>→</span></button>
-          </form>
-          <small className="access-note">This is a preview access screen.</small>
+  return <main>
+    <nav className="nav shell"><a className="brand" href="#top"><span>F</span> frameflow</a><div className="nav-links"><a href="#studio">Prompt studio</a><a href="#how">How it works</a></div><a className="nav-cta" href="#studio">Create a plan <b>↗</b></a></nav>
+    <section className="hero shell" id="top"><p className="kicker">AI VIDEO BRIEFING STUDIO</p><h1>Turn a good listing into<br /><em>a story people feel.</em></h1><p className="lede">Frameflow turns your property details into a ready-to-shoot video plan—complete with strategic beats, scene prompts and a clear closing line.</p><div className="proof"><span>✦ Built for property teams</span><span>✦ Plans in under a minute</span><span>✦ Ready for any video model</span></div></section>
+    <section className="studio shell" id="studio">
+      <header className="studio-header"><div><p className="step">STEP 01</p><h2>Set the runtime</h2></div><p>Choose the size of story you want to tell.</p></header>
+      <div className="duration-grid">{durations.map(([time, hint, cost], index) => <button type="button" className={duration === index ? "duration active" : "duration"} onClick={() => setDuration(index)} key={time}><b>{time}</b><span>{hint}</span><small>{cost}</small></button>)}</div>
+      <form onSubmit={generate}><div className="rule" /><header className="studio-header"><div><p className="step">STEP 02</p><h2>Shape the brief</h2></div><p>The more specific the inputs, the more useful the plan.</p></header>
+        <div className="form-grid">
+          <label className="wide">Project name <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Bayview Residences" /></label>
+          <label>Property type <select defaultValue="Luxury condominium"><option>Luxury condominium</option><option>Premium high-rise</option><option>Serviced apartment</option><option>Landed home</option><option>Commercial space</option></select></label>
+          <label>Audience <select value={audience} onChange={(e) => setAudience(e.target.value)}><option>Ambitious professionals</option><option>Young families</option><option>Investors</option><option>Retirees</option><option>International buyers</option></select></label>
+          <label className="wide">The standout details <textarea value={features} onChange={(e) => setFeatures(e.target.value)} placeholder="e.g. A sea view from every home, a rooftop pool, freehold ownership and five minutes to the city centre." /></label>
+          <label>Tone <select value={tone} onChange={(e) => setTone(e.target.value)}><option>Cinematic & warm</option><option>Quiet luxury</option><option>Modern & energetic</option><option>Family-first</option><option>Calm & considered</option></select></label>
+          <label>Sales energy <select defaultValue="Balanced"><option>Balanced</option><option>Soft and editorial</option><option>Direct and urgent</option></select></label>
         </div>
-      </main>
-    );
-  }
-
-  function chooseFile(event: ChangeEvent<HTMLInputElement>) {
-    const selected = event.target.files?.[0] ?? null;
-    if (selected) {
-      setFile(selected);
-      setComplete(false);
-    }
-  }
-
-  function enhance() {
-    if (!file) return inputRef.current?.click();
-    setProcessing(true);
-    setComplete(false);
-    window.setTimeout(() => {
-      setProcessing(false);
-      setComplete(true);
-    }, 1800);
-  }
-
-  return (
-    <main>
-      <nav className="nav wrap" aria-label="Primary navigation">
-        <a className="brand" href="#top" aria-label="Vivid home"><span>v</span> vivid</a>
-        <div className="nav-links"><a href="#how">How it works</a><a href="#faq">FAQ</a></div>
-        <button className="ghost-button" onClick={() => inputRef.current?.click()}>Try for free <span>↗</span></button>
-      </nav>
-
-      <section className="hero wrap" id="top">
-        <div className="eyebrow"><i /> AI VIDEO ENHANCEMENT</div>
-        <h1>Make every frame<br /><em>worth watching.</em></h1>
-        <p className="lede">Turn soft, low-resolution MP4s into clear, polished video. Choose your target quality and let Vivid handle the rest.</p>
-        <div className="hero-points"><span>✦ No watermark</span><span>✦ MP4, up to 2 GB</span><span>✦ Files deleted after export</span></div>
-      </section>
-
-      <section className="workspace wrap" aria-label="Video enhancer">
-        <div className="workspace-head"><div><span className="step">01</span><h2>Upload your video</h2></div><p>Start with an MP4. We’ll optimize it for your chosen output.</p></div>
-        <input ref={inputRef} id="video-upload" type="file" accept="video/mp4" onChange={chooseFile} hidden />
-        {!file ? (
-          <button className="dropzone" onClick={() => inputRef.current?.click()}>
-            <span className="upload-icon">↑</span><strong>Drop your MP4 here</strong><small>or click to browse files</small><b>MP4 · Max 2 GB</b>
-          </button>
-        ) : (
-          <div className="file-card"><div className="file-art"><span>▶</span></div><div className="file-info"><b>{file.name}</b><span>{(file.size / 1024 / 1024).toFixed(1)} MB · MP4</span></div><button className="replace" onClick={() => inputRef.current?.click()}>Replace</button></div>
-        )}
-
-        <div className="divider" />
-        <div className="workspace-head"><div><span className="step">02</span><h2>Choose output quality</h2></div><p>We’ll retain the original frame rate and audio.</p></div>
-        <div className="preset-grid">
-          {presets.map((item, index) => <button key={item.label} className={`preset ${preset === index ? "selected" : ""}`} onClick={() => setPreset(index)}><span className="radio" /><div><b>{item.label}</b><small>{item.value}</small></div><em>{item.hint}</em></button>)}
-        </div>
-        <div className="action-row"><div><b>Ready when you are</b><span>{file ? `Output: ${presets[preset].label}` : "Add a video to begin"}</span></div><button className="enhance-button" onClick={enhance} disabled={processing}>{processing ? "Enhancing…" : complete ? "Enhance another" : "Enhance video"}<span>→</span></button></div>
-        {processing && <div className="progress"><span /><b>Enhancing frames and refining detail…</b></div>}
-        {complete && <div className="success"><span>✓</span><div><b>Preview processing complete</b><p>Your {presets[preset].label} enhancement is ready for export in a connected production workspace.</p></div></div>}
-      </section>
-
-      <section className="how wrap" id="how"><div className="section-label">SIMPLE BY DESIGN</div><h2>From low-res to <em>love this.</em></h2><div className="how-grid"><article><span>01</span><h3>Upload</h3><p>Add the MP4 you want to improve.</p></article><article><span>02</span><h3>Enhance</h3><p>Pick a resolution and refine every frame.</p></article><article><span>03</span><h3>Export</h3><p>Save a cleaner, sharper version of your video.</p></article></div></section>
-      <footer className="wrap" id="faq"><a className="brand" href="#top"><span>v</span> vivid</a><p>Sharper stories, one frame at a time.</p><small>© 2026 Vivid Studio</small></footer>
-    </main>
-  );
+        <div className="submit-row"><div><b>Your plan includes</b><span>Strategy, four scene beats and a closing call-to-action</span></div><button className="generate" type="submit">Generate video plan <b>→</b></button></div>
+      </form>
+      {plan && <section className="result" aria-live="polite"><div className="result-top"><div><p className="step">YOUR VIDEO PLAN</p><h3>{name || "Your project"}, in four beats</h3></div><button type="button" onClick={copyPlan}>{copied ? "Copied" : "Copy plan"} <b>↗</b></button></div><div className="scene-grid">{plan.map((item, i) => <article key={item}><span>0{i + 1}</span><h4>{scenes[i]}</h4><p>{item}</p></article>)}</div></section>}
+    </section>
+    <section className="how shell" id="how"><p className="kicker">A SIMPLE STARTING POINT</p><h2>From details to <em>direction.</em></h2><div className="how-grid"><article><span>01</span><h3>Describe</h3><p>Bring the place, its audience and the best reasons to care.</p></article><article><span>02</span><h3>Direct</h3><p>Pick the pace and mood so the plan feels like your brand.</p></article><article><span>03</span><h3>Produce</h3><p>Use the scene plan with your team or your preferred video tool.</p></article></div></section>
+    <footer className="shell"><a className="brand" href="#top"><span>F</span> frameflow</a><p>Clearer stories for remarkable places.</p><small>© 2026 Frameflow</small></footer>
+  </main>;
 }

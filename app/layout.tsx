@@ -13,8 +13,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vivid — AI video enhancement",
-  description: "Enhance MP4 videos to crisp HD and 4K quality.",
+  title: "Frameflow — AI video briefing studio",
+  description: "Turn property details into a clear, ready-to-shoot video plan.",
+  openGraph: {
+    title: "Frameflow — AI video briefing studio",
+    description: "Turn property details into direction.",
+    images: ["/og.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Frameflow — AI video briefing studio",
+    description: "Turn property details into direction.",
+    images: ["/og.png"],
+  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
