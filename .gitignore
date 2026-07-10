@@ -40,3 +40,8 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+/local-work/
+/local-output/
+/.site-stage/
+/.github/
+*.tgz
