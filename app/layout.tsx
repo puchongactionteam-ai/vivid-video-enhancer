@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./extra.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,13 +19,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Frameflow — AI video briefing studio",
     description: "Turn property details into direction.",
-    images: ["/og.png"],
+    images: ["/og-frameflow.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: "Frameflow — AI video briefing studio",
     description: "Turn property details into direction.",
-    images: ["/og.png"],
+    images: ["/og-frameflow.png"],
   },
   icons: {
     icon: "/favicon.svg",
